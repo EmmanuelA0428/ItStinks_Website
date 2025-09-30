@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>It Stinks Map</title>
+    <link rel="stylesheet" href="../styles/mapStyle.css">
+    <script src="../js/mapInit.js" defer></script>
+    <script src="../js/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+    <!-- <button id="home-btn">Landing Page</button> -->
+
+    <button id="drawer-toggle">☰ Info</button>
+    <div id="drawer">
+        <h3>It Stinks Data</h3>
+
+        <!-- Download Section removed -->
+
+        <!-- Trends Section -->
+        <div id="trends-section">
+            <h4>Trends Over Time</h4>
+            <canvas id="trend-chart" width="250" height="150"></canvas>
+        </div>
+        <hr />
+
+        <!-- Most Common Section -->
+        <div id="common-section">
+            <h4>Most Common Today</h4>
+            <p id="common-today">Loading...</p>
+        </div>
+    </div>
+
+    <div id="map"></div>
+</body>
+
+</html>

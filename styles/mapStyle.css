@@ -1,0 +1,173 @@
+body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Drawer styles */
+        #drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 320px;
+            /* slightly wider */
+            height: 100%;
+            background: #f9f9f9;
+            /* light grey */
+            box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+            /* stronger shadow */
+            padding: 20px;
+            overflow-y: auto;
+            border-radius: 10px 0 0 10px;
+            /* rounded left corners */
+            transform: translateX(100%);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1000;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Open state */
+        #drawer.open {
+            transform: translateX(0);
+        }
+
+        /* Drawer toggle button */
+        #drawer-toggle {
+            position: fixed;
+            top: 14px;
+            right: 60px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s ease, transform 0.2s ease;
+            z-index: 1100;
+        }
+
+        #drawer-toggle:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        /* Section headings */
+        #drawer h4 {
+            margin-top: 0;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Buttons inside drawer */
+        #drawer button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 8px;
+        }
+
+        #drawer button:hover {
+            background: #0056b3;
+        }
+
+        /* Divider line */
+        #drawer hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 20px 0;
+        }
+
+        /* Inputs and selects */
+        #drawer input,
+        #drawer select,
+        #drawer textarea {
+            width: 100%;
+            padding: 6px 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        #drawer textarea {
+            resize: vertical;
+        }
+
+        /* Section spacing */
+        #drawer>div {
+            margin-bottom: 15px;
+        }
+
+        #home-btn {
+        position: fixed;
+        top: 14px;
+        left: 20px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: background 0.2s ease, transform 0.2s ease;
+        z-index: 1100;
+        }
+        #home-btn:hover {
+        background: #1e7e34;
+        transform: scale(1.05);
+        }
+
+        
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+
+.legend {
+  background: white;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+
+@media (max-width: 600px) {
+  /* .legend { display:none; } -- Removed, legend always visible */
+  /* .legend-toggle rules removed -- no toggle button */
+  #drawer-toggle {
+    display: none;
+  }
+} 
+
+/* #home-btn {
+    background: white;
+    color: #007bff;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+} */
+
