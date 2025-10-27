@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stink Map Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="../styles/admin.css">
+    <link rel="stylesheet" href="../styles/admin.css" />
+    <script type="module" src="../js/pages/admin.js" defer></script>
 </head>
 
 <body>
@@ -14,20 +15,17 @@
     <div class="sidebar">
         <div class="filter-section">
             <h3>Marker Filter</h3>
-            <!-- Filtering controls -->
             <div class="filter-controls">
-                <!-- Stink level -->
                 <div>
-                    <input type="text" id="search-input" placeholder="Search comments...">
+                    <input type="text" id="search-input" placeholder="Search comments..." />
                     <select id="stink-filter">
-                        <option value="all">All Stink Levels</option>
+                        <option value="all">All Levels</option>
                         <option value="A little">A little</option>
                         <option value="A lot">A lot</option>
                         <option value="Really bad">Really bad</option>
                         <option value="unbearable">Unbearable</option>
                     </select>
                 </div>
-                <!-- Time Filter -->
                 <div>
                     <select id="time-filter">
                         <option value="all">All Time</option>
@@ -35,7 +33,6 @@
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
                     </select>
-                    <!-- Download Filter -->
                     <select id="download-filter">
                         <option value="all">All Markers</option>
                         <option value="A little">A little Only</option>
@@ -45,33 +42,30 @@
                     </select>
                 </div>
             </div>
-            <button class="download-btn" id="download-btn">
-                Download CSV
-            </button>
+            <button class="download-btn" id="download-btn">Download CSV</button>
         </div>
-        <!-- Markers table -->
+
         <div class="markers-table-container">
             <table id="markers-table">
                 <thead>
                     <tr>
-                        <th data-sort="lat">Latitude ↕</th>
-                        <th data-sort="lng">Longitude ↕</th>
-                        <th data-sort="stinkLevel">Stink Level ↕</th>
-                        <th data-sort="createdAt">Date Added ↕</th>
-                        <th>Comment</th>
+                        <th data-sort="stinkLevel">Stink Level</th>
+                        <th data-sort="stinkDuration">Duration</th>
+                        <th data-sort="createdAt">Date & Time</th>
+                        <th data-sort="comment">Comment</th>
+                        <th data-sort="lat">Latitude</th>
+                        <th data-sort="lng">Longitude</th>
                     </tr>
                 </thead>
-                <tbody id="markers-table-body">
-                    <!-- Will be populated by JavaScript -->
-                </tbody>
+                <tbody id="markers-table-body"></tbody>
             </table>
         </div>
     </div>
+
     <!-- Right panel -->
     <div class="main-content">
         <div class="navigation-section">
             <div class="nav-title">Admin Dashboard</div>
-            <!-- Refresh button -->
             <button class="refresh-btn" id="refresh-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -81,13 +75,32 @@
                 Refresh Data
             </button>
         </div>
-        <!--Visualization -->
+
+
+        <div class="chart-controls">
+            <label for="chart-range">Date Range:</label>
+            <select id="chart-range">
+                <option value="7">Last 7 days</option>
+                <option value="14">Last 14 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="custom">Custom Range</option>
+            </select>
+
+            <div id="custom-date-range" style="display: none; margin-top: 10px;">
+                <input type="date" id="start-date" />
+                <span> to </span>
+                <input type="date" id="end-date" />
+                <button id="apply-custom-range">Apply</button>
+            </div>
+        </div>
         <div class="violation-section">
             <h3 class="section-title">Stink Level Trends (Last 7 Days)</h3>
             <div class="chart-container">
                 <canvas id="trend-chart"></canvas>
             </div>
         </div>
+
         <div class="stats-section">
             <h3 class="section-title">Statistics Overview</h3>
             <div class="stats-grid">
@@ -113,385 +126,9 @@
             <div class="last-updated" id="last-updated">Last updated: -</div>
         </div>
     </div>
-    <script>
-        let allMarkers = [];
-        let currentSort = { column: 'createdAt', direction: 'desc' };
-        let trendChart = null;
-        let endPointUrl = "https://script.google.com/macros/s/AKfycbw_iDotkHmq5tdyk-GpSW4RgX1vMU7kBQzYPN4DRsTZfYmV22bNftl5Wo7YVVKdhYTl/exec";
 
-        // Initialize the admin page
-        document.addEventListener('DOMContentLoaded', function () {
-            loadMarkers();
-            setupEventListeners();
-        });
+    <!-- Link your external JS file -->
 
-        // JSONP helper function
-        function jsonp(url, callback) {
-            const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
-            // Add callback parameter to URL
-            url += (url.indexOf("?") >= 0 ? "&" : "?") + "callback=" + callbackName;
-            // Create script element
-            const script = document.createElement("script");
-            script.src = url;
-            // Create global callback
-            window[callbackName] = function (data) {
-                callback(data);
-                // Cleanup
-                delete window[callbackName];
-                document.body.removeChild(script);
-            };
-            // Handle errors
-            script.onerror = function () {
-                callback({ success: false, error: "Failed to load" });
-                delete window[callbackName];
-                document.body.removeChild(script);
-            };
-            document.body.appendChild(script);
-        }
-
-        // Fetch markers from Google Apps Script
-        async function loadMarkers() {
-            try {
-                jsonp(endPointUrl, function (markers) {
-                    if (markers.success === false) {
-                        console.error("Failed to fetch markers:", markers.error);
-                        alert('Error loading markers: ' + markers.error);
-                        return;
-                    }
-                    allMarkers = markers;
-                    renderMarkersTable(allMarkers);
-                    updateTrends();
-                    updateStatistics();
-                    updateLastUpdated();
-                });
-            } catch (error) {
-                console.error('Error loading markers:', error);
-                alert('Error loading markers: ' + error.message);
-            }
-        }
-
-        // Set up event listeners for filters and buttons
-        function setupEventListeners() {
-            // Filter events
-            document.getElementById('search-input').addEventListener('input', applyFilters);
-            document.getElementById('stink-filter').addEventListener('change', applyFilters);
-            document.getElementById('time-filter').addEventListener('change', applyFilters);
-            // Sort event
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const column = th.getAttribute('data-sort');
-                    sortTable(column);
-                });
-            });
-            // Button events
-            document.getElementById('refresh-btn').addEventListener('click', loadMarkers);
-            document.getElementById('download-btn').addEventListener('click', () => {
-                const filter = document.getElementById('download-filter').value;
-                downloadCSV(filter);
-            });
-        }
-
-        // Render markers in the table
-        function renderMarkersTable(markers) {
-            const tableBody = document.getElementById('markers-table-body');
-            tableBody.innerHTML = '';
-            if (markers.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="5" style="text-align: center; padding: 20px;">No markers found</td>`;
-                tableBody.appendChild(row);
-                return;
-            }
-            markers.forEach(marker => {
-                const row = document.createElement('tr');
-                // Format date for display
-                const date = new Date(marker.createdAt);
-                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-                // Get stink level class for color coding
-                const stinkClass = 'stink-' + marker.stinkLevel.toLowerCase().replace(' ', '-');
-                row.innerHTML = `
-                    <td>${marker.lat.toFixed(6)}</td>
-                    <td>${marker.lng.toFixed(6)}</td>
-                    <td class="${stinkClass}">${marker.stinkLevel}</td>
-                    <td>${formattedDate}</td>
-                    <td>${marker.comment || '-'}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-            // Update sort indicators
-            updateSortIndicators();
-        }
-
-        // Apply filters to the markers table
-        function applyFilters() {
-            const searchText = document.getElementById('search-input').value.toLowerCase();
-            const stinkFilter = document.getElementById('stink-filter').value;
-            const timeFilter = document.getElementById('time-filter').value;
-            const filteredMarkers = allMarkers.filter(marker => {
-                // Search filter
-                if (searchText && !(marker.comment && marker.comment.toLowerCase().includes(searchText))) {
-                    return false;
-                }
-                // Stink level filter
-                if (stinkFilter !== 'all' && marker.stinkLevel !== stinkFilter) {
-                    return false;
-                }
-                // Time filter
-                if (timeFilter !== 'all') {
-                    const markerDate = new Date(marker.createdAt);
-                    const now = new Date();
-                    if (timeFilter === 'today') {
-                        const isToday = markerDate.toDateString() === now.toDateString();
-                        if (!isToday) return false;
-                    } else if (timeFilter === 'week') {
-                        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                        if (markerDate < oneWeekAgo) return false;
-                    } else if (timeFilter === 'month') {
-                        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                        if (markerDate < oneMonthAgo) return false;
-                    }
-                }
-                return true;
-            });
-            // Sort and render filtered markers
-            const sortedMarkers = sortMarkers(filteredMarkers, currentSort.column, currentSort.direction);
-            renderMarkersTable(sortedMarkers);
-        }
-
-        // Sort table by column
-        function sortTable(column) {
-            // Toggle direction if same column, otherwise default to ascending
-            const direction = currentSort.column === column
-                ? (currentSort.direction === 'asc' ? 'desc' : 'asc')
-                : 'asc';
-            currentSort = { column, direction };
-            applyFilters(); // This will reapply filters and sort
-        }
-
-        // Sort markers array
-        function sortMarkers(markers, column, direction) {
-            return [...markers].sort((a, b) => {
-                let valueA = a[column];
-                let valueB = b[column];
-                // Handle numeric comparison for lat/lng
-                if (column === 'lat' || column === 'lng') {
-                    valueA = parseFloat(valueA);
-                    valueB = parseFloat(valueB);
-                }
-                // Handle date comparison
-                if (column === 'createdAt') {
-                    valueA = new Date(valueA);
-                    valueB = new Date(valueB);
-                }
-                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        // Update sort indicators in table headers
-        function updateSortIndicators() {
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                const column = th.getAttribute('data-sort');
-                th.innerHTML = th.textContent.replace(' ↕', '');
-                if (column === currentSort.column) {
-                    th.innerHTML += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
-                } else {
-                    th.innerHTML += ' ↕';
-                }
-            });
-        }
-
-        // Update trends chart
-        function updateTrends() {
-            if (!allMarkers || allMarkers.length === 0) return;
-            const ctx = document.getElementById('trend-chart').getContext('2d');
-            // Get last 7 days
-            const today = new Date();
-            const last7Days = [];
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date(today);
-                d.setDate(d.getDate() - i);
-                last7Days.push(d.toISOString().slice(0, 10));
-            }
-            // Initialize counts for each level
-            const levels = ["A little", "A lot", "Really bad", "unbearable"];
-            const counts = { all: [], "A little": [], "A lot": [], "Really bad": [], unbearable: [] };
-            last7Days.forEach((day) => {
-                let dayMarkers = allMarkers.filter(
-                    (m) => new Date(m.createdAt).toISOString().slice(0, 10) === day
-                );
-                counts.all.push(dayMarkers.length);
-                levels.forEach((lvl) => {
-                    counts[lvl].push(dayMarkers.filter((m) => m.stinkLevel === lvl).length);
-                });
-            });
-            // Destroy previous chart if exists
-            if (trendChart) trendChart.destroy();
-            // Draw chart
-            trendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: last7Days.map(d => formatDateDisplay(d)),
-                    datasets: [
-                        {
-                            label: "All",
-                            data: counts.all,
-                            borderColor: "blue",
-                            backgroundColor: "rgba(0, 0, 255, 0.1)",
-                            fill: true,
-                            tension: 0.4,
-                        },
-                        {
-                            label: "A little",
-                            data: counts["A little"],
-                            borderColor: "green",
-                            backgroundColor: "rgba(0, 128, 0, 0.1)",
-                            fill: true,
-                            tension: 0.4,
-                        },
-                        {
-                            label: "A lot",
-                            data: counts["A lot"],
-                            borderColor: "yellow",
-                            backgroundColor: "rgba(255, 255, 0, 0.1)",
-                            fill: true,
-                            tension: 0.4,
-                        },
-                        {
-                            label: "Really bad",
-                            data: counts["Really bad"],
-                            borderColor: "orange",
-                            backgroundColor: "rgba(255, 165, 0, 0.1)",
-                            fill: true,
-                            tension: 0.4,
-                        },
-                        {
-                            label: "Unbearable",
-                            data: counts.unbearable,
-                            borderColor: "red",
-                            backgroundColor: "rgba(255, 0, 0, 0.1)",
-                            fill: true,
-                            tension: 0.4,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 },
-                            title: {
-                                display: true,
-                                text: 'Number of Reports'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Stink Reports Over Time'
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update statistics
-        function updateStatistics() {
-            // Total markers
-            document.getElementById('total-markers').textContent = allMarkers.length;
-            // Today's markers
-            const today = new Date().toISOString().slice(0, 10);
-            const todayMarkers = allMarkers.filter(m => m.createdAt.startsWith(today));
-            document.getElementById('today-markers').textContent = todayMarkers.length;
-            // Most common today
-            if (todayMarkers.length > 0) {
-                const todayCounts = countStinkLevels(todayMarkers);
-                const todayMostCommon = getMostCommonStinkLevel(todayCounts);
-                document.getElementById('common-today').textContent = todayMostCommon;
-                document.getElementById('common-today-count').textContent = `Count: ${todayCounts[todayMostCommon]}`;
-            } else {
-                document.getElementById('common-today').textContent = "No reports today";
-                document.getElementById('common-today-count').textContent = "";
-            }
-            // Most common overall
-            const overallCounts = countStinkLevels(allMarkers);
-            if (allMarkers.length > 0) {
-                const overallMostCommon = getMostCommonStinkLevel(overallCounts);
-                document.getElementById('overall-common').textContent = overallMostCommon;
-                document.getElementById('overall-common-count').textContent = `Count: ${overallCounts[overallMostCommon]}`;
-            } else {
-                document.getElementById('overall-common').textContent = "No data";
-                document.getElementById('overall-common-count').textContent = "";
-            }
-        }
-
-        // Count stink levels
-        function countStinkLevels(markers) {
-            const counts = { "A little": 0, "A lot": 0, "Really bad": 0, unbearable: 0 };
-            markers.forEach(marker => {
-                counts[marker.stinkLevel]++;
-            });
-            return counts;
-        }
-
-        // Get most common stink level from counts
-        function getMostCommonStinkLevel(counts) {
-            let maxCount = 0;
-            let mostCommon = "";
-            for (const level in counts) {
-                if (counts[level] > maxCount) {
-                    maxCount = counts[level];
-                    mostCommon = level;
-                }
-            }
-            return mostCommon;
-        }
-
-        // Update last updated time
-        function updateLastUpdated() {
-            const now = new Date();
-            const formattedTime = now.toLocaleTimeString();
-            document.getElementById('last-updated').textContent = `Last updated: ${formattedTime}`;
-        }
-
-        // Download CSV function
-        function downloadCSV(filter) {
-            console.log("Downloading CSV");
-            let filtered = allMarkers;
-            if (filter !== "all") {
-                filtered = allMarkers.filter((m) => m.stinkLevel === filter);
-            }
-            let csv = "lat,lng,stinkLevel,stinkDuration,comment,createdAt\n";
-            filtered.forEach((m) => {
-                csv += `${m.lat},${m.lng},"${m.stinkLevel}","${m.stinkDuration || ""}","${m.comment || ""}",${m.createdAt}\n`;
-            });
-            const blob = new Blob([csv], { type: "text/csv" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "stinks.csv";
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // Helper function to format date for display
-        function formatDateDisplay(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-    </script>
 </body>
 
 </html>
