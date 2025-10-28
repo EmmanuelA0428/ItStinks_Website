@@ -1,3 +1,6 @@
+import { CONFIG } from "../utils/config.js";
+
+let MAPS_API_KEY = CONFIG.MAPS_API_KEY;
 ((g) => {
   var h,
     a,
@@ -32,5 +35,4 @@
   d[l]
     ? console.warn(p + " only loads once. Ignoring:", g)
     : (d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)));
-})({ key: "AIzaSyDeiMLTbgG-Rqa6LbtVOBZXKiNXPzxezHE", v: "weekly" });
- 
+})({ key: MAPS_API_KEY, v: "weekly" });
