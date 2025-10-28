@@ -5,8 +5,8 @@ import { CONFIG } from "../utils/config.js";
 const urlParams = new URLSearchParams(window.location.search);
 const accessKey = urlParams.get("key");
 
-// Your secret token (keep it long and hard to guess)
-const SECRET_KEY = "mySuperSecretKey12345";
+// Secret token
+const SECRET_KEY = "aK9mP2xQ7nB4vF8wR6tY3zL5jH1cD0sE";
 
 if (accessKey !== SECRET_KEY) {
   document.body.innerHTML =
@@ -334,7 +334,7 @@ function updateTrends() {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       interaction: {
         mode: "index",
         intersect: false,
